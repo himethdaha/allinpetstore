@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs')
 
 const userSchema = new mongoose.Schema({
     first_name:{type:String,minLength:[1,'Minimum characters required is 1'],maxLength:[10,'Maximum characters is 10'],trim:true,required:[true,'Enter your first name'],
@@ -26,7 +27,7 @@ const userSchema = new mongoose.Schema({
         },
         message: 'Enter a valid email address'
     }},
-    password:{type:String,minLength:[8,'Minimum length is 8 characters'],required:[true,'Password is required'],
+    password:{type:String,minLength:[8,'Minimum length is 8 characters'],select:false,required:[true,'Password is required'],
     validate:{
         validator:function(val)
         {
@@ -34,19 +35,31 @@ const userSchema = new mongoose.Schema({
         },
         message: 'Password must contain at least one number, symbol and a capital letter'
     }},
-    address:{type:String,trim:true,required:[true,'Address is required']},
-    state:{type:String,enum:['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'],trim:true,required:[true,'State is required']},
-    postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters'],trim:true,required:[true,'Enter the postal code'],
+    passwordConfirm:{type:String,minLength:[8,'Minimum length is 8 characters'],required:[true,'Password Confirmation is required'],
     validate: {
-        validator:function(val)
+        validator: function(val)
         {
-        return validator.isAlpha(val,{ignore:' '})
+            return this.password === val
         },
-        message:`Postal Code can't contain spaces`
+        message:'Password does not match'
     }
     },
+    address:{type:String,trim:true,required:[true,'Address is required']},
+    state:{type:String,enum:['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'],trim:true,required:[true,'State is required']},
+    postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters with no special characters'],trim:true,required:[true,'Enter the postal code']},
     role:{type:String,enum:['user','owner','breeder'],required:[true,'role is required']},
 
 
 })
-module.exports = mongoose.model('User',userSchema);
+
+//To hash user passwords
+userSchema.pre('save',async function(next){
+    let user = this
+    //If password wasn't modified don't run 
+    if(!user.isModified('password')) return next()
+
+    user.password = await bcrypt.hash(user.password,10)
+    user.passwordConfirm = undefined
+    next()
+})
+
