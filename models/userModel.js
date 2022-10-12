@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
     first_name:{type:String,minLength:[1,'Minimum characters required is 1'],maxLength:[10,'Maximum characters is 10'],trim:true,required:[true,'Enter your first name'],
@@ -48,6 +49,8 @@ const userSchema = new mongoose.Schema({
     state:{type:String,enum:['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'],trim:true,required:[true,'State is required']},
     postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters with no special characters'],trim:true,required:[true,'Enter the postal code']},
     role:{type:String,enum:['user','owner','breeder'],required:[true,'role is required']},
+    resetPasswordToken:String,
+    resetPasswordTokenExpire:Date
 
 
 })
@@ -63,3 +66,20 @@ userSchema.pre('save',async function(next){
     next()
 })
 
+//Instance method
+//To create user password reset token
+userSchema.methods.passwordResetToken = function()
+{
+    //Create token to be sent to the user
+    const resetToken = crypto.randomBytes(32).toString('hex')
+    //Encrypt the token
+    const cryptedResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+    this.resetPasswordToken = cryptedResetToken
+    console.log(this.resetPasswordToken,resetToken)
+    //Expire reset token in 10 mins
+    this.resetPasswordTokenExpire = Date.now() + 10 * 60 * 1000
+    //Return the uncrypted token to be used by the user
+    return resetToken
+}
+
+module.exports = mongoose.model('User',userSchema);

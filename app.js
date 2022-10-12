@@ -20,6 +20,7 @@ mongoose.connect(mongodb,{
   useUnifiedTopology:true
 }).then(()=>{
   console.log('Connected to DB');
+  console.log(mongoose.connection.readyState)
 })
 
 // view engine setup
