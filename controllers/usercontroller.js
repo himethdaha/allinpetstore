@@ -49,7 +49,6 @@ exports.login_post=async(req,res,next)=>{
     {
        return next(new Error('Email or password is empty'))
     }
-    console.log(email,password)
     //Get the user based on the email
     const user = await User.findOne({email}).select('+password')
     console.log(user)
