@@ -2,6 +2,7 @@ const express = require('express')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const sendMail = require('../utilities/emailer')
 
 //Signup User POST
 exports.signup_post= async (req,res,next)=>{
@@ -89,10 +90,29 @@ exports.forgot_password=async(req,res,next)=>{
     //Generate token to be sent to the users email
     const resetToken = user.passwordResetToken()
     await user.save({validateBeforeSave:false})
-    //Send the token
-    res.status(200).json({
-        resetToken
-    })
+
+    //Create resetpassword url with the resetoken
+    const resetTokenUrl = `${req.protocol}://${req.hostname}/users/resetPassword/${resetToken}`
+
+    //Create email options
+    try {
+        sendMail({
+            to:user.email,
+            subject:'Password reset token',
+            text:`Your password reset token is in this url ${resetTokenUrl}. This token will expire in 10 minitues. If you did not request a password reset ignore this email`
+        })
+
+        res.status(200).json({
+            status:'Success',
+            message:'Email sent'
+        })
+    } catch (error) {
+        user.resetPasswordToken = undefined
+        user.resetPasswordTokenExpire = undefined
+        await user.save({validateBeforeSave:false})
+        return next(error)
+    }
+
 }
 
 //Reset Password POST
