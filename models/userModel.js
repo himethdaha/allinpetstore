@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
-    first_name:{type:String,minLength:[1,'Minimum characters required is 1'],maxLength:[10,'Maximum characters is 10'],trim:true,required:[true,'Enter your first name'],
+    first_name:{type:String,minLength:[1,'Minimum characters required is 1'],maxLength:[15,'Maximum characters is 10'],trim:true,required:[true,'Enter your first name'],
     validate:{
         validator: function(val)
         {
@@ -50,7 +50,8 @@ const userSchema = new mongoose.Schema({
     postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters with no special characters'],trim:true,required:[true,'Enter the postal code']},
     role:{type:String,enum:['user','owner','breeder'],required:[true,'role is required']},
     resetPasswordToken:String,
-    resetPasswordTokenExpire:Date
+    resetPasswordTokenExpire:Date,
+    passwordChangeTime:Date
 
 
 })
@@ -63,8 +64,11 @@ userSchema.pre('save',async function(next){
 
     user.password = await bcrypt.hash(user.password,10)
     user.passwordConfirm = undefined
+    user.passwordChangeTime = Date.now()
     next()
 })
+
+
 
 //Instance method
 //To create user password reset token

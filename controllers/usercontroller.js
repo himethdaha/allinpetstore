@@ -49,7 +49,10 @@ exports.login_post=async(req,res,next)=>{
     //If user entered the email and password 
     if(!email || !password)
     {
-       return next(new Error('Email or password is empty'))
+       return res.status(400).json({
+        status:'Fail',
+        message:'Empty email or password'
+       })
     }
     //Get the user based on the email
     const user = await User.findOne({email}).select('+password')
@@ -57,7 +60,10 @@ exports.login_post=async(req,res,next)=>{
     //If no user or incorrect password
     if(user===null || !await bcrypt.compare(password,user.password))
     {
-        return next(new Error(`Email or Password is incorrect`))
+        return res.status(400).json({
+            status:'Fail',
+            message:'Incorrect email/password or user does not exist'
+        })
     }
         //Create jwt
         const jwtoken = jwt.sign({id:user._id}, process.env.JWT_SECRET,{
@@ -120,18 +126,19 @@ exports.forgot_password=async(req,res,next)=>{
 //Reset Password POST
 exports.reset_password=async (req,res,next)=>{
     const resetToken = req.params.resetToken
-    console.log(`Reset token in controller ${resetToken}`)
 
     //If there is a token hash it
      const hashToken = crypto.createHash('sha256').update(resetToken).digest('hex')
-    console.log(hashToken)
     //Get user based on resetToken
     const user = await User.findOne({resetPasswordToken:hashToken})
     console.log(user)
     //Check if resetToken hasn't expired and user exists
     if(user===null)
     {
-        return next(`Invalid token or password token has expired`)
+        return res.status(400).json({
+            status:'Fail',
+            message:`Invalid token or password token has expired`
+        })
     }
 
     //Update password of user
