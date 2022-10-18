@@ -2,6 +2,7 @@ const express = require('express')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 const sendMail = require('../utilities/emailer')
 
 //Signup User POST
@@ -80,8 +81,9 @@ exports.login_post=async(req,res,next)=>{
 
 //Forgot Password POST
 exports.forgot_password=async(req,res,next)=>{
+    const email = req.body.email
     //Get user email from request body
-    const user = await User.findOne({email:req.body.email})
+    const user = await User.findOne({email})
     //Check if user email exists
     if(user===null)
     {
@@ -110,12 +112,43 @@ exports.forgot_password=async(req,res,next)=>{
         user.resetPasswordToken = undefined
         user.resetPasswordTokenExpire = undefined
         await user.save({validateBeforeSave:false})
-        return next(error)
+        return next(error )
     }
 
 }
 
 //Reset Password POST
-exports.reset_password=(req,res,next)=>{
-    
+exports.reset_password=async (req,res,next)=>{
+    const resetToken = req.params.resetToken
+    console.log(`Reset token in controller ${resetToken}`)
+
+    //If there is a token hash it
+     const hashToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+    console.log(hashToken)
+    //Get user based on resetToken
+    const user = await User.findOne({resetPasswordToken:hashToken})
+    console.log(user)
+    //Check if resetToken hasn't expired and user exists
+    if(user===null)
+    {
+        return next(`Invalid token or password token has expired`)
+    }
+
+    //Update password of user
+    user.password = req.body.password
+    user.passwordConfirm = req.body.passwordConfirm
+    user.resetPasswordToken = undefined
+    user.resetPasswordTokenExpire = undefined 
+    await user.save()
+
+    //Log in the user
+    const jwtoken = jwt.sign({id:user._id},process.env.JWT_SECRET,{
+        expiresIn: process.env.JWT_EXP
+    })
+
+    res.status(200).json({
+        status:'Success',
+        message:'Password reset',
+        jwtoken,
+    })
 }

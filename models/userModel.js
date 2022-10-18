@@ -79,6 +79,7 @@ userSchema.methods.passwordResetToken = function()
     //Expire reset token in 10 mins
     this.resetPasswordTokenExpire = Date.now() + 10 * 60 * 1000
     //Return the uncrypted token to be used by the user
+    console.log(`Reset token in model: ${resetToken}`)
     return resetToken
 }
 
