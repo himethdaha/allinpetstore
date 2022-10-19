@@ -1,6 +1,9 @@
 {
   "name": "allinpetstore",
   "version": "1.0.0",
+  "engines": {
+    "node": "16.17.0"
+  },
   "description": "A Store for all of your pet's needs",
   "scripts": {
     "start": "node ./bin/www",

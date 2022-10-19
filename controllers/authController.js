@@ -2,8 +2,8 @@ const express = require('express')
 const jwt = require('jsonwebtoken')
 const User = require('../models/userModel')
 
-//Authorize routes
-exports.authorizeRoute = async(req,res,next)=>{
+//Authenticating routes
+exports.authenticateRoutes = async(req,res,next)=>{
     let token;
     let decoded;
     //Check if jwt exists
@@ -28,10 +28,9 @@ exports.authorizeRoute = async(req,res,next)=>{
             message:`You don't have access.Please log in`
         })
     }
-    //Check if jwt is valid and not expired
+    //Check if jwt is valid and not manipulated
     try {
          decoded = jwt.verify(token,process.env.JWT_SECRET)
-         console.log(decoded)
     } catch (error) {
         return res.status(401).json({
             status:'Fail',
@@ -57,5 +56,10 @@ exports.authorizeRoute = async(req,res,next)=>{
             message:'Password was changed.Please log in'
         })
     }
+    //Pass the validated user to the next middleware
+    req.user = user
     next( )
 }
+
+//Authorize routes
+exports.authorizeRoutes
