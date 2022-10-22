@@ -62,4 +62,17 @@ exports.authenticateRoutes = async(req,res,next)=>{
 }
 
 //Authorize routes
-exports.authorizeRoutes
+exports.authorizeRoutes = (...roles)=>{
+    return (req,res,next) =>{
+        if(!(roles.includes(req.user.role)))
+        {
+            return res.status(403).json({
+                status:'Fail',
+                message:'You do not have access to perform this action'    
+            })
+        }
+        next()
+        
+
+    }
+}
