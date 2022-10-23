@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 
 
-const storeSchema = new mongoose.Schema({
-    store_name:{type:String,trim:true,unique:true,required:[true,'Store name is required']},
+const petShopSchema = new mongoose.Schema({
+    petShop_name:{type:String,trim:true,unique:true,required:[true,'Pet shop name is required']},
     description:{type:String,maxLength:[200,`Maximum characters is 200`]},
     owner:{type:mongoose.Schema.Types.ObjectId, ref: 'User'},
     address:{type:String,trim:true,required:[true,'Address is required']},
@@ -11,4 +11,4 @@ const storeSchema = new mongoose.Schema({
     postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters'],trim:true,required:[true,'Postal code is required']}   
 })
 
-module.exports = mongoose.model('Store',storeSchema);
+module.exports = mongoose.model('PetShop',petShopSchema);

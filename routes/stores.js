@@ -10,8 +10,8 @@ router.get('/:storeId',storeController.get_store)
 //POST(create) stores
 router.post('/create',authController.authenticateRoutes,authController.authorizeRoutes('owner'),storeController.create_stores);
 //UPDATE stores
-router.patch('/update/:storeId',authController.authenticateRoutes,storeController.update_stores);
+router.patch('/update/:storeId',authController.authenticateRoutes,authController.authorizeRoutes('owner'),storeController.update_stores);
 //DELETE stores
-router.delete('/delete/:storeId',authController.authenticateRoutes,storeController.delete_stores);
+router.delete('/delete/:storeId',authController.authenticateRoutes,authController.authorizeRoutes('owner'),storeController.delete_stores);
 
 module.exports = router;

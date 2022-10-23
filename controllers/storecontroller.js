@@ -1,11 +1,9 @@
-const e = require('express')
 const express = require('express')
 const Store = require('../models/storeModel')
 
 //Get All Stores
 exports.get_stores = async (req,res,next)=>{
     const stores = await Store.find()
-    console.log(stores.length)
 
     if(stores.length==0)
     {
@@ -29,16 +27,23 @@ exports.get_stores = async (req,res,next)=>{
 exports.get_store = async(req,res,next)=>{
     //Get a store based on Id
     const store = await Store.findOne({_id:req.params.storeId})
-    console.log(store)
+
     if(store===null)
     {
-        return next(new Error('Incorrect store Id or store does not exist'))
+        res.status(400).json({
+            status:'Fail',
+            message:'Incorrect store Id or store does not exist'
+        })
+    }
+    else
+    {
+
+        res.status(200).json({
+            status:'Success',
+            store
+        })
     }
 
-    res.status(200).json({
-        status:'Success',
-        store
-    })
 }
 
 //Create a store
@@ -51,7 +56,7 @@ exports.create_stores = async(req,res,next)=>{
         postal_code:req.body.postal_code
     })
 
-    res.status(200).json({
+    res.status(201).json({
         status:'Success',
         message:'Store created',
         store
