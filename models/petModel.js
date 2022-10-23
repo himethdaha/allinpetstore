@@ -8,7 +8,7 @@ const petSchema = new mongoose.Schema({
     breed:{type:String,trim:true,required:[true,`Enter pet's breed`]},
     age:{type:String,trim:true,required:[true,`Enter pet's age`]},
     color:{type:String,trim:true,required:[true,`Enter pet's color`]},
-    height_length:{type:Number,trim:true,required:[true,`Pet's height is required`]},
+    height:{type:Number,trim:true,required:[true,`Pet's height is required`]},
     weight:{type:Number,trim:true,required:[true,`Pet's weight is required`]},
     hereditery_sicknesses:{type:[String],required:[true,'Any or all of the breeds genetic sicknesses must be stated']},
     image:{type:String,required:['true','An image of the pet is required']},
