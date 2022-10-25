@@ -159,3 +159,88 @@ exports.reset_password=async (req,res,next)=>{
         jwtoken,
     })
 }
+
+//GET user information
+exports.get_user = async(req,res,next) =>{
+    //Get the id from req.user passed down from authenticate middleware
+    const user = await User.findById(req.user._id)
+
+    res.status(200).json({
+        status:'Success',
+        user
+    })
+}
+
+const filterFunction = (reqObj, ...fields)=>
+{   
+    //Object to be returned
+    const newObj = {}
+    //Save the fields found in the request object
+    const keys = Object.keys(reqObj)
+    console.log(keys)
+    console.log(fields)
+    //Loop over the request object fields
+    keys.forEach((key)=>{
+        console.log(key)
+        //If fields in the request object matches allowed fields
+        if(fields.includes(key))
+        {
+            newObj[key] = reqObj[key]
+        }
+    })
+    return newObj
+}
+exports.update_user = async(req,res,next) =>{
+    //Get the user by req.user
+    const user = await User.findById(req.user._id)
+    console.log(user)
+    //Function to filter fields
+    const filteredFields = filterFunction(req.body, 'first_name','last_name','email','address','state','postal_code')
+
+    //If the request body contains password fields
+    if(req.body.password || req.body.passwordConfirm)
+    {
+        res.status(400).json({
+            status:'Fail',
+            message:'You can not update passwords here'
+        })
+    }
+    else
+    {
+        const updatedUser = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+
+        res.status(200).json({
+            status:'Success',
+            message:'Data updateed',
+            updatedUser
+        })
+    }
+
+}
+exports.delete_user = async(req,res,next) =>{
+    //Get the user
+    const user = await User.findOne({_id:req.user._id}).select('+password')
+    //Get the password from req body
+    const password = req.body.password
+
+    //If password is not correct
+    if(!await bcrypt.compare(password,user.password))
+    {
+        res.status(401).json({
+            status:'Fail',
+            message:'Incorrect passoword'
+        })
+    }
+    //If password is correct
+    if(await bcrypt.compare(password,user.password))
+    {
+        //If password is correct, delete user
+        await User.findByIdAndDelete(req.user._id)
+
+        res.status(204).json({
+            status:'Success',
+            message:'User deleted'
+        })
+    }
+   
+}

@@ -65,10 +65,10 @@ exports.create_stores = async(req,res,next)=>{
 
 //Modify a store
 exports.update_stores = (req,res,next)=>{
-
+   
 }
 
 //Delete a store
-exports.delete_stores = (req,res,next)=>{
-
+exports.delete_stores = async(req,res,next)=>{
+    
 }
