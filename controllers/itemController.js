@@ -1,5 +1,7 @@
 const express = require('express')
 const itemModel = require('../models/itemModel')
+const User = require('../models/userModel')
+const bcrypt = require('bcryptjs')
 
 //GET all items
 exports.get_item = async(req,res,next)=>{
@@ -63,5 +65,23 @@ exports.update_item = async(req,res,next)=>{
 }
 //DELETE item
 exports.delete_item = async(req,res,next)=>{
+ //Get user by id and password
+ const user = await User.findOne({_id:req.user._id}).select('+password')
+ //Check for password confirmation
+ if(!(await bcrypt.compare(req.body.password,user.password)))
+ {
+     res.status(401).json({
+         status:'Fail',
+         message:'Incorrect password'
+     })
+ }
+ if(await bcrypt.compare(req.body.password,user.password))
+ {
+    await itemModel.findByIdAndDelete(req.params.itemId)
 
+    res.status(204).json({
+        status:'Success',
+        message:'Item Deleted'
+    })
+ }
 }

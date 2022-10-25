@@ -1,5 +1,7 @@
 const express = require('express')
 const petModel = require('../models/petModel')
+const User = require('../models/userModel')
+const bcrypt = require('bcryptjs')
 
 //GET all pets
 exports.get_pet = async(req,res,next)=>{
@@ -69,5 +71,23 @@ exports.update_pet = async(req,res,next)=>{
 }
 //DELETE pet
 exports.delete_pet = async(req,res,next)=>{
+    //Get user by id and password
+    const user = await User.findOne({_id:req.user._id}).select('+password')
+    //Check for password confirmation
+    if(!(await bcrypt.compare(req.body.password,user.password)))
+    {
+        res.status(401).json({
+            status:'Fail',
+            message:'Incorrect password'
+        })
+    }
+    if(await bcrypt.compare(req.body.password,user.password))
+    {
+       await petModel.findByIdAndDelete(req.params.petId)
 
+       res.status(204).json({
+           status:'Success',
+           message:'Pet Deleted'
+       })
+    }
 }
