@@ -2,6 +2,7 @@ const express = require('express')
 const petModel = require('../models/petModel')
 const User = require('../models/userModel')
 const bcrypt = require('bcryptjs')
+const func = require('./filterFunction')
 
 //GET all pets
 exports.get_pet = async(req,res,next)=>{
@@ -67,7 +68,29 @@ exports.create_pet = async(req,res,next)=>{
 }
 //PATCH pet
 exports.update_pet = async(req,res,next)=>{
-
+     //Get the user by req.user
+     const user = await User.findById(req.user._id)
+     //Function to filter fields
+     const filteredFields = func.filterFunction(req.body, 'pet_name','type','price','breed','age','color','height','weight','hereditery_sicknesses','image','description')
+ 
+     //If the request body contains breeder name field
+     if(req.body.breeder_name)
+     {
+         res.status(400).json({
+             status:'Fail',
+             message:'You can not update breeder here. Please contact our customer services'
+         })
+     }
+     else
+     {
+         const updatedStore = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+ 
+         res.status(200).json({
+             status:'Success',
+             message:'Data updateed',
+             updatedStore
+         })
+     }
 }
 //DELETE pet
 exports.delete_pet = async(req,res,next)=>{

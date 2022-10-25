@@ -2,6 +2,7 @@ const express = require('express')
 const User = require('../models/userModel')
 const Store = require('../models/storeModel')
 const bcrypt = require('bcryptjs')
+const func = require('./filterFunction')
 
 //Get All Stores
 exports.get_stores = async (req,res,next)=>{
@@ -66,8 +67,30 @@ exports.create_stores = async(req,res,next)=>{
 }
 
 //Modify a store
-exports.update_stores = (req,res,next)=>{
-   
+exports.update_stores = async(req,res,next)=>{
+    //Get the user by req.user
+    const user = await User.findById(req.user._id)
+    //Function to filter fields
+    const filteredFields = func.filterFunction(req.body, 'store_name','description','address','state','postal_code')
+
+    //If the request body contains owner field
+    if(req.body.owner)
+    {
+        res.status(400).json({
+            status:'Fail',
+            message:'You can not update owner here. Please contact our customer services'
+        })
+    }
+    else
+    {
+        const updatedStore = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+
+        res.status(200).json({
+            status:'Success',
+            message:'Data updateed',
+            updatedStore
+        })
+    }
 }
 
 //Delete a store

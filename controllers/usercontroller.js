@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 const sendMail = require('../utilities/emailer')
-
+const func = require('./filterFunction')
 //Signup User POST
 exports.signup_post= async (req,res,next)=>{
     try {
@@ -171,31 +171,12 @@ exports.get_user = async(req,res,next) =>{
     })
 }
 
-const filterFunction = (reqObj, ...fields)=>
-{   
-    //Object to be returned
-    const newObj = {}
-    //Save the fields found in the request object
-    const keys = Object.keys(reqObj)
-    console.log(keys)
-    console.log(fields)
-    //Loop over the request object fields
-    keys.forEach((key)=>{
-        console.log(key)
-        //If fields in the request object matches allowed fields
-        if(fields.includes(key))
-        {
-            newObj[key] = reqObj[key]
-        }
-    })
-    return newObj
-}
+
 exports.update_user = async(req,res,next) =>{
     //Get the user by req.user
     const user = await User.findById(req.user._id)
-    console.log(user)
     //Function to filter fields
-    const filteredFields = filterFunction(req.body, 'first_name','last_name','email','address','state','postal_code')
+    const filteredFields = func.filterFunction(req.body, 'first_name','last_name','email','address','state','postal_code')
 
     //If the request body contains password fields
     if(req.body.password || req.body.passwordConfirm)

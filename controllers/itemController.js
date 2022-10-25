@@ -2,6 +2,7 @@ const express = require('express')
 const itemModel = require('../models/itemModel')
 const User = require('../models/userModel')
 const bcrypt = require('bcryptjs')
+const func = require('./filterFunction')
 
 //GET all items
 exports.get_item = async(req,res,next)=>{
@@ -61,7 +62,29 @@ exports.create_item = async(req,res,next)=>{
 }
 //PATCH item
 exports.update_item = async(req,res,next)=>{
-
+     //Get the user by req.user
+     const user = await User.findById(req.user._id)
+     //Function to filter fields
+     const filteredFields = func.filterFunction(req.body, 'item_name','description','price','quantity')
+ 
+     //If the request body contains store name field
+     if(req.body.store_name)
+     {
+         res.status(400).json({
+             status:'Fail',
+             message:'You can not update the store name here. Please contact our customer services'
+         })
+     }
+     else
+     {
+         const updatedStore = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+ 
+         res.status(200).json({
+             status:'Success',
+             message:'Data updateed',
+             updatedStore
+         })
+     }
 }
 //DELETE item
 exports.delete_item = async(req,res,next)=>{
