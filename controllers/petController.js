@@ -5,10 +5,47 @@ const bcrypt = require('bcryptjs')
 const func = require('./filterFunction')
 
 //GET all pets
-exports.get_pet = async(req,res,next)=>{
-    //Get all pets in the db
-    const pets = await petModel.find().populate('breeder_name')
+exports.get_pets = async(req,res,next)=>{
 
+    //FILTERING 
+    //Array with keywords NOT to be used in the filter query
+    const nonFilters = ['page','sort','limit','fields'];
+    //Make a copy of the request query
+    let newFilters = {...req.query};
+    console.log(req.query)
+    //Remove all the keywords NOT to be used in the filter query, inside the req.query copy
+    nonFilters.forEach(el=>{
+        if(req.query.hasOwnProperty(el))
+        {
+           delete newFilters[el]
+        }
+    })
+
+    //If there's relational operators in the request query
+    let queryString = JSON.stringify(newFilters)
+    //Replace the operators with mongodb operators
+    queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, (matchedString) => `$${matchedString}`)
+    console.log(queryString)
+    //Get the completed query 
+    let query = petModel.find(JSON.parse(queryString))
+
+    //SORTING
+    if(req.query.sort)
+    {
+        //With multiple sorts
+        const sortBy = req.query.sort.split(',').join(' ')
+        query = query.sort(sortBy) 
+    }
+    //Default sorting by latest
+    else
+    {
+        query = query.sort('-createdAt')
+    }
+
+    //Get all pets in the db based on filtering,sorting or no filters,sorts
+    let pets = await query.populate('breeder_name')
+
+    
     if(pets.length == 0)
     {
         res.status(400).json({
@@ -54,7 +91,7 @@ exports.create_pet = async(req,res,next)=>{
         breed:req.body.breed,
         age:req.body.age,
         color:req.body.color,
-        height:req.body.height_length,
+        height:req.body.height,
         weight:req.body.weight,
         hereditery_sicknesses:req.body.hereditery_sicknesses,
         image:req.body.image,

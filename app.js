@@ -37,10 +37,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/stores', storesRouter);
-app.use('/petStores', petStoresRouter);
+app.use('/petShops', petStoresRouter);
 app.use('/pets', petsRouter);
 app.use('/items', itemsRouter);
 

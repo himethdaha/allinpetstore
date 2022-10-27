@@ -4,7 +4,7 @@ const authController = require('../controllers/authController')
 const router = express.Router();
 
 //GET pet
-router.get('/',petController.get_pet);
+router.get('/',petController.get_pets);
 //GET store based on ID
 router.get('/:petId',petController.get_pet)
 //POST(create) pet
