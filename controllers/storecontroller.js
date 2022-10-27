@@ -6,7 +6,29 @@ const func = require('./filterFunction')
 
 //Get All Stores
 exports.get_stores = async (req,res,next)=>{
-    const stores = await Store.find()
+
+    //FILTERING 
+    //Array with keywords NOT to be used in the filter query
+    const nonFilters = ['page','sort','limit','fields'];
+    //Make a copy of the request query
+    let newFilters = {...req.query};
+    
+    //Remove all the keywords NOT to be used in the filter query, inside the req.query copy
+    nonFilters.forEach(el=>{
+        if(req.query.hasOwnProperty(el))
+        {
+           delete newFilters[el]
+        }
+    })
+
+    //If there's relational operators in the request query
+    let queryString = JSON.stringify(newFilters)
+    //Replace the operators with mongodb operators
+    queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, matchedString => {`$${matchedString}`})
+    //Get the completed query 
+    const query = Store.find(JSON.parse(queryString))
+
+    const stores = await query
 
     if(stores.length==0)
     {

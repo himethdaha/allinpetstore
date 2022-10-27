@@ -74,3 +74,10 @@ item_name,description,price,quantity,store_name{storemodel._id}
 breeder_name,owner{usermodel._id},address,state,postalcode
 ## PET MODEL
 pet_name,pet_type,pet_price,pet_breed_,pet_age,pet_color,pet_height/length,pet_weight,pet_hereditery_sicknesses,pet_image,dfescription,breeder{breedermodel._id}
+
+## FILTERING
+## Item filtering
+category,price,store_name
+
+## Pet filtering
+type,price,breed,age,breeder_name

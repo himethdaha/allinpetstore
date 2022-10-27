@@ -8,9 +8,12 @@ const dotenv = require('dotenv')
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const storesRouter = require('./routes/stores');
+const petStoresRouter = require('./routes/petShops');
+const petsRouter = require('./routes/pet');
+const itemsRouter = require('./routes/item');
 
-const app = express();
 dotenv.config({path: './config.env'})
+const app = express();
 //DATABASE CONNECTION
 //Database connection string in atlas
 const mongodb = process.env.DATABASE.replace('<password>',process.env.DB_PASSWORD)
@@ -37,6 +40,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/stores', storesRouter);
+app.use('/petStores', petStoresRouter);
+app.use('/pets', petsRouter);
+app.use('/items', itemsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
