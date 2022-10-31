@@ -13,8 +13,8 @@ const petSchema = new mongoose.Schema({
     hereditery_sicknesses:{type:[String],required:[true,'Any or all of the breeds genetic sicknesses must be stated']},
     image:{type:String},
     description:{type:String,minLength:[20,'Need a description of at least 20 characters'],maxLength:[200,`Description can't exceed 200 characters`], trim:true,required:true},
-    breeder_name:{type:mongoose.Schema.Types.ObjectId,ref:'User'},
-    createdAt:{type:Date,default:Date.now(),immuatable:true}
+    petShop_name:{type:mongoose.Schema.Types.ObjectId,ref:'PetShop'},
+    createdAt:{type:Date,default:Date.now(),immuatable:true,select:false},
 },
 {
     toJSON:{getters:true}
@@ -29,14 +29,5 @@ function setPrice(num)
 {
     return num*100
 }
-
-petSchema.pre('save', function(next)
-{
-    if(this.isModified('createdAt'))
-    {
-        return next(new Error(`You can not change the createdAt field`))
-    }
-    next()
-})
 
 module.exports = mongoose.model('Pet',petSchema);

@@ -2,7 +2,7 @@ const express = require('express')
 const petShop = require('../models/petShopModel')
 const User = require('../models/userModel')
 const bcrypt = require('bcryptjs')
-const func = require('./filterFunction')
+const func = require('../utilities/filterFunction')
 //GET all petshops
 exports.get_petShop = async(req,res,next)=>{
   //Get all petshops in the db

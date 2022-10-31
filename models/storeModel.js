@@ -9,7 +9,7 @@ const storeSchema = new mongoose.Schema({
     address:{type:String,trim:true,required:[true,'Address is required']},
     state:{type:String,enum:['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'],trim:true,required:[true,'State is required']},
     postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters'],trim:true,required:[true,'Postal code is required']},
-    createdAt:{type:Date,default:Date.now(),immuatable:true}   
+    createdAt:{type:Date,default:Date.now(),immuatable:true,select:false}   
 })
 
 storeSchema.pre('save', function(next)

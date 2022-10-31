@@ -51,7 +51,8 @@ const userSchema = new mongoose.Schema({
     role:{type:String,enum:['user','owner','breeder'],required:[true,'role is required']},
     resetPasswordToken:String,
     resetPasswordTokenExpire:Date,
-    passwordChangeTime:Date
+    passwordChangeTime:Date,
+    createdAt:{type:Date,default:Date.now(),immuatable:true,select:false}   
 
 
 })

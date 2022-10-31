@@ -2,7 +2,7 @@ const express = require('express')
 const User = require('../models/userModel')
 const Store = require('../models/storeModel')
 const bcrypt = require('bcryptjs')
-const func = require('./filterFunction')
+const func = require('../utilities/filterFunction')
 
 //Get All Stores
 exports.get_stores = async (req,res,next)=>{

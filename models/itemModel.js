@@ -8,7 +8,7 @@ const itemSchema = new mongoose.Schema({
     price:{type:Number,trim:true,required:[true,'Price is required'], get: (val)=>{(val/100).toFixed(2)}, set: (val)=>{val*100}},
     quantity:{type:Number,trim:true,required:[true,'Quantity is required']},
     category:{type:[String],required:[true,'Specify a category for your item'],enum:['Pet-food','Toys','Pet-beds','kennels','Food-bowls']},
-    createdAt:{type:Date,default:Date.now(),immuatable:true}    
+    createdAt:{type:Date,default:Date.now(),immuatable:true,select:false}    
 },
 {
     toJSON:{getters:true}

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 const sendMail = require('../utilities/emailer')
-const func = require('./filterFunction')
+const func = require('../utilities/filterFunction')
 //Signup User POST
 exports.signup_post= async (req,res,next)=>{
     try {
