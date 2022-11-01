@@ -3,15 +3,15 @@ const petModel = require('../models/petModel')
 const User = require('../models/userModel')
 const bcrypt = require('bcryptjs')
 const func = require('../utilities/filterFunction')
-let APIFeatures = require('../utilities/APIFeatures')
-
+const APIFeatures = require('../utilities/APIFeatures')
 //GET all pets
 exports.get_pets = async(req,res,next)=>{
 
     const queries = new APIFeatures(petModel.find(),req.query).filter().sort().limitFields().pagination()
 
+    const query = await queries.query
     //Get all pets in the db based on filtering,sorting or no filters,sorts
-    let pets = await queries.query.populate('petShop_name')
+    let pets = await query.populate('petShop_name')
     
     if(pets.length == 0)
     {
@@ -117,4 +117,53 @@ exports.delete_pet = async(req,res,next)=>{
            message:'Pet Deleted'
        })
     }
+}
+
+exports.get_most_expensive = async(req,res) =>{
+
+        let typeOfPet = req.params.petType
+            const pets = await petModel.aggregate([
+                {
+                    $match:{
+                        type:typeOfPet
+                    }
+                },
+                {
+                    $group:{
+                        _id:'$breed',
+                        price:{$max:'$price'},
+                        
+                        
+                    }
+                },
+                {
+                    $addFields:{breed:'$_id'}
+                },
+                {
+                    $project:{
+                        _id:0
+                    }
+                },
+                {
+                    $sort:{
+                        price:-1
+                    }
+                }
+                
+            ])
+            if(pets.length === 0 )
+            {
+                res.status(200).json({
+                    status:'Fail',
+                    message:'Could not find any results'
+                }) 
+            }
+            else
+            {
+
+                res.status(200).json({
+                    status:'Success',
+                    pets
+                })   
+            }
 }

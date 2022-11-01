@@ -3,6 +3,8 @@ const storeController = require('../controllers/storecontroller')
 const authController = require('../controllers/authController')
 const router = express.Router();
 
+//GET petShops based on ratings
+router.get('/storeRatings',storeController.store_ratings)
 //GET stores
 router.get('/',storeController.get_stores);
 //GET store based on ID

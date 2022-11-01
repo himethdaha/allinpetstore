@@ -3,11 +3,16 @@ const itemModel = require('../models/itemModel')
 const User = require('../models/userModel')
 const bcrypt = require('bcryptjs')
 const func = require('../utilities/filterFunction')
+const APIFeatures = require('../utilities/APIFeatures')
+
 
 //GET all items
 exports.get_item = async(req,res,next)=>{
+
+    const queries = new APIFeatures(itemModel.find(),req.query).filter().sort().limitFields().pagination()
+
     //Get all items in the db
-    const items = await itemModel.find().populate('store_name')
+    const items = await queries.query.populate('store_name')
 
     if(items.length == 0)
     {
@@ -107,4 +112,84 @@ exports.delete_item = async(req,res,next)=>{
         message:'Item Deleted'
     })
  }
+}
+
+exports.get_most_expensive = async(req,res) =>{
+
+    let itemCategory = req.params.category
+    console.log(itemCategory)
+        const items = await itemModel.aggregate([
+            {
+                $match:{
+                    type:itemCategory
+                }
+            },
+            {
+                $group:{
+                    _id:'$item_name',
+                    price:{$max:'$price'}
+                    
+                }
+            },
+            {
+                $addFields:{
+                    name:'$_id'
+                }
+            },
+            {
+                $project:{
+                    _id:0
+                }
+            },
+            {
+                $sort:{
+                    price:-1
+                }
+            }
+            
+        ])
+        if(items.length === 0 )
+        {
+            res.status(200).json({
+                status:'Fail',
+                message:'Could not find any results'
+            }) 
+        }
+        else
+        {
+
+            res.status(200).json({
+                status:'Success',
+                items
+            })   
+        }
+}
+
+exports.item_ratings = async(req,res,next)=>{
+
+    try {
+        let items =  await itemModel.aggregate([
+            {
+                $group:
+                {
+                    _id: '$item_name',
+                    totRatingsAvg:{$avg:'$avgRatings'},
+                    totRatings:{$sum:'$noOfRatings'},
+                }
+            },
+            {
+                $sort: {totRatingsAvg:-1}
+            }
+        ])
+    
+        res.status(200).json({
+            status:'Success',
+            items
+        })
+    } catch (error) {
+        res.status(404).json({
+            status:'Fail',
+            message:'Can not find results'
+        })
+    }
 }

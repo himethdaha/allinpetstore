@@ -3,6 +3,8 @@ const petController = require('../controllers/petController')
 const authController = require('../controllers/authController')
 const router = express.Router();
 
+//GET most expensive pets based on type
+router.get('/expensive/:petType',petController.get_most_expensive)
 //GET pet
 router.get('/',petController.get_pets);
 //GET store based on ID

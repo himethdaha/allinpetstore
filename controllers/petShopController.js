@@ -3,10 +3,16 @@ const petShop = require('../models/petShopModel')
 const User = require('../models/userModel')
 const bcrypt = require('bcryptjs')
 const func = require('../utilities/filterFunction')
+const APIFeatures = require('../utilities/APIFeatures')
+const { json } = require('express')
+
 //GET all petshops
-exports.get_petShop = async(req,res,next)=>{
+exports.get_petShops = async(req,res,next)=>{
+
+  const queries = new APIFeatures(petShop.find(),req.query).filter().sort().limitFields().pagination()
+
   //Get all petshops in the db
-  const petShops = await petShop.find()
+  const petShops = await queries.query
 
   if(petShops.length == 0)
   {
@@ -28,10 +34,10 @@ exports.get_petShop = async(req,res,next)=>{
 //GET pet shop based on id
 exports.get_petShop = async(req,res,next)=>{
     //Get the pet shop id from url params
-    const petShop = await petShop.findOne({_id:req.params.petShopId})
+    const petShops = await petShop.findOne({_id:req.params.petShopId})
 
     //If there's no petshop to be found
-    if(petShop===null)
+    if(petShops===null)
     {
         res.status(400).json({
             status:'Fail',
@@ -42,7 +48,7 @@ exports.get_petShop = async(req,res,next)=>{
     {
         res.status(200).json({
             status:'Success',
-            petShop
+            petShops
         })
     }
 
@@ -114,4 +120,34 @@ exports.delete_petShop = async(req,res,next)=>{
             message:'Pet Shop Deleted'
         })
      }
+}
+
+
+exports.petShop_ratings = async(req,res,next)=>{
+
+    try {
+        let shops =  await petShop.aggregate([
+            {
+                $group:
+                {
+                    _id: '$petShop_name',
+                    totRatingsAvg:{$avg:'$Rating'},
+                    totRatings:{$sum:'$noOfRatings'},
+                }
+            },
+            {
+                $sort: {totRatingsAvg:-1}
+            }
+        ])
+    
+        res.status(200).json({
+            status:'Success',
+            shops
+        })
+    } catch (error) {
+        res.status(404).json({
+            status:'Fail',
+            message:'Can not find results'
+        })
+    }
 }

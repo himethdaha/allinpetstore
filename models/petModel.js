@@ -3,7 +3,7 @@ const validator = require('validator')
 
 const petSchema = new mongoose.Schema({
     pet_name:{type:String,trim:true,required:[true,`Pet name is required`]},
-    type:{type:String,trim:true,required:[true,`Enter what type of animal your pet is`]},
+    type:{type:String,trim:true,enum:['canine','feline','aquatic','aerial'],required:[true,`Enter what type of animal your pet is`]},
     price:{type:Number,trim:true,required:[true,`Enter pet's price`], get:getPrice, set:setPrice},
     breed:{type:String,trim:true,required:[true,`Enter pet's breed`]},
     age:{type:String,trim:true,required:[true,`Enter pet's age`]},

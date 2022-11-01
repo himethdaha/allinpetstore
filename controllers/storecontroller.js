@@ -3,11 +3,15 @@ const User = require('../models/userModel')
 const Store = require('../models/storeModel')
 const bcrypt = require('bcryptjs')
 const func = require('../utilities/filterFunction')
+const APIFeatures = require('../utilities/APIFeatures')
+const storeModel = require('../models/storeModel')
 
 //Get All Stores
 exports.get_stores = async (req,res,next)=>{
 
-    const stores = await Store.find()
+    const queries = new APIFeatures(petModel.find(),req.query).filter().sort().limitFields().pagination()
+
+    const stores = await queries.query
     
     if(stores.length==0)
     {
@@ -113,6 +117,35 @@ exports.delete_stores = async(req,res,next)=>{
         res.status(204).json({
             status:'Success',
             message:'Store Deleted'
+        })
+    }
+}
+
+exports.store_ratings = async(req,res,next)=>{
+
+    try {
+        let stores =  await storeModel.aggregate([
+            {
+                $group:
+                {
+                    _id: '$store_name',
+                    totRatingsAvg:{$avg:'$avgRatings'},
+                    totRatings:{$sum:'$noOfRatings'},
+                }
+            },
+            {
+                $sort: {totRatingsAvg:-1}
+            }
+        ])
+    
+        res.status(200).json({
+            status:'Success',
+            stores
+        })
+    } catch (error) {
+        res.status(404).json({
+            status:'Fail',
+            message:'Can not find results'
         })
     }
 }

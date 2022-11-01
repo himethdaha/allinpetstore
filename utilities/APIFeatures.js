@@ -26,7 +26,7 @@ class APIFeatures
         //Replace the operators with mongodb operators
         newqueryString = newqueryString.replace(/\b(gte|gt|lte|lt)\b/g, (matchedString) => `$${matchedString}`)
         //Get the completed query 
-        this.query = petModel.find(JSON.parse(newqueryString))
+        this.query = this.query.find(JSON.parse(newqueryString))
 
         return this
 
@@ -55,11 +55,11 @@ class APIFeatures
         if(this.queryString.fields)
         {
             const fields = this.queryString.fields.split(',').join(' ')
-            query = query.select(fields)
+            this.query = this.query.select(fields)
         }
         else
         {
-            query = query.select('-__v')
+            this.query = this.query.select('-__v')
         }
 
         return this
@@ -72,7 +72,7 @@ class APIFeatures
     //Default page
     const page = Number(this.queryString.page) || 1
     //Default limit
-    const limit = Number(this.queryString.limit) || 2
+    const limit = Number(this.queryString.limit) || 10
     //Documents to skip
     const skip = (page * limit) - limit
 
