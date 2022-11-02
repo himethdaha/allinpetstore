@@ -57,6 +57,7 @@ const userSchema = new mongoose.Schema({
 
 })
 
+//DOC Middleware
 //To hash user passwords
 userSchema.pre('save',async function(next){
     let user = this

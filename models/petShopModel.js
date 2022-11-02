@@ -11,9 +11,11 @@ const petShopSchema = new mongoose.Schema({
     postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters'],trim:true,required:[true,'Postal code is required']},
     createdAt:{type:Date,default:Date.now(),immuatable:true,select:false},
     noOfRatings:{type:Number,default:0},
-    Rating:{type:Number,min:[1,`Rating must be above 1.0`], max:[5,`Rating must be below 5`],set:val=> Math.round(val*10)/10}   
+    Rating:{type:Number,min:[1,`Rating must be above 1.0`], max:[5,`Rating must be below 5`],set:val=> Math.round(val*10)/10},
+    slug:{type:String}   
 })
 
+//DOC Middleware
 petShopSchema.pre('save', function(next)
 {
     if(this.isModified('createdAt'))
@@ -23,4 +25,9 @@ petShopSchema.pre('save', function(next)
     next()
 })
 
+itemSchema.pre('save',function(next){
+    this.slug = slugify(this.item_name, {
+        lower:true
+    })
+})
 module.exports = mongoose.model('PetShop',petShopSchema);

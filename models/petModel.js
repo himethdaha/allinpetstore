@@ -15,6 +15,7 @@ const petSchema = new mongoose.Schema({
     description:{type:String,minLength:[20,'Need a description of at least 20 characters'],maxLength:[200,`Description can't exceed 200 characters`], trim:true,required:true},
     petShop_name:{type:mongoose.Schema.Types.ObjectId,ref:'PetShop'},
     createdAt:{type:Date,default:Date.now(),immuatable:true,select:false},
+    slug:{type:String}
 },
 {
     toJSON:{getters:true}
@@ -30,4 +31,12 @@ function setPrice(num)
     return num*100
 }
 
+//DOC Middleware
+itemSchema.pre('save',function(next){
+    this.slug = slugify(this.item_name, {
+        lower:true
+    })
+
+    next()
+})
 module.exports = mongoose.model('Pet',petSchema);

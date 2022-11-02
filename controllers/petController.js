@@ -131,9 +131,7 @@ exports.get_most_expensive = async(req,res) =>{
                 {
                     $group:{
                         _id:'$breed',
-                        price:{$max:'$price'},
-                        
-                        
+                        price:{$max:'$price'} 
                     }
                 },
                 {
