@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema({
     address:{type:String,trim:true,required:[true,'Address is required']},
     state:{type:String,enum:['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'],trim:true,required:[true,'State is required']},
     postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters with no special characters'],trim:true,required:[true,'Enter the postal code']},
-    role:{type:String,enum:['user','owner','breeder'],required:[true,'role is required']},
+    role:{type:String,enum:['user','owner','breeder'],required:[true,'role is required'],default:'user'},
     resetPasswordToken:String,
     resetPasswordTokenExpire:Date,
     passwordChangeTime:Date,

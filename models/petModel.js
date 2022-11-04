@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const validator = require('validator')
+const validator = require('validator');
+const petShopModel = require('./petShopModel');
 
 const petSchema = new mongoose.Schema({
     pet_name:{type:String,trim:true,required:[true,`Pet name is required`]},
@@ -32,7 +33,7 @@ function setPrice(num)
 }
 
 //DOC Middleware
-itemSchema.pre('save',function(next){
+petSchema.pre('save',function(next){
     this.slug = slugify(this.item_name, {
         lower:true
     })

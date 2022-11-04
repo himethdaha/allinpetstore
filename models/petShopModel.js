@@ -25,7 +25,7 @@ petShopSchema.pre('save', function(next)
     next()
 })
 
-itemSchema.pre('save',function(next){
+petShopSchema.pre('save',function(next){
     this.slug = slugify(this.item_name, {
         lower:true
     })

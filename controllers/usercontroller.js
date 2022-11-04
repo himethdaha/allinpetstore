@@ -5,6 +5,21 @@ const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 const sendMail = require('../utilities/emailer')
 const func = require('../utilities/filterFunction')
+
+//Sign JWT function
+const signJWT = (userId,res) =>{
+    const jwtoken = jwt.sign({id:userId},process.env.JWT_SECRET,{
+        expiresIn: process.env.JWT_EXP
+    })
+    
+    //Send jwt with a cookie
+    res.cookie('jwt',jwtoken,{
+        expires:new Date(Date.now() + process.env.JWT_COOKIE_EXP * 60 * 60 * 1000),
+        httpOnly:true
+    })
+    return jwtoken
+}
+
 //Signup User POST
 exports.signup_post= async (req,res,next)=>{
     try {
@@ -21,9 +36,8 @@ exports.signup_post= async (req,res,next)=>{
         role:req.body.role
     })
     //Create a jwt
-    const jwtoken = jwt.sign({id:user._id},process.env.JWT_SECRET,{
-        expiresIn: process.env.JWT_EXP
-    })
+    const jwtoken = signJWT(user._id,res)
+
     //Send a response with the jwt
     res.status(201).json({
         status:'User Created',
@@ -66,9 +80,7 @@ exports.login_post=async(req,res,next)=>{
         })
     }
         //Create jwt
-        const jwtoken = jwt.sign({id:user._id}, process.env.JWT_SECRET,{
-            expiresIn:process.env.JWT_EXP
-        })
+        const jwtoken = signJWT(user._id,res)
         //Send a response with the jwt
         res.status(200).json({
             status:'Success',
@@ -149,9 +161,7 @@ exports.reset_password=async (req,res,next)=>{
     await user.save()
 
     //Log in the user
-    const jwtoken = jwt.sign({id:user._id},process.env.JWT_SECRET,{
-        expiresIn: process.env.JWT_EXP
-    })
+    const jwtoken = signJWT(user._id,res)
 
     res.status(200).json({
         status:'Success',

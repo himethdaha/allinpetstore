@@ -25,7 +25,7 @@ storeSchema.pre('save', function(next)
     next()
 })
 
-itemSchema.pre('save',function(next){
+storeSchema.pre('save',function(next){
     this.slug = slugify(this.item_name, {
         lower:true
     })
