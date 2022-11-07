@@ -1,6 +1,10 @@
 const createError = require('http-errors');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const sanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp')
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -39,13 +43,18 @@ const APILimit = rateLimit({
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+app.use(helmet())
 app.use(logger('dev'));
 app.use(express.json());
+app.use(sanitize());
+app.use(xss());
+app.use(hpp())
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(APILimit)
 
+//Routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/stores', storesRouter);
