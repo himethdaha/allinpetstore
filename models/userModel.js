@@ -52,6 +52,8 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken:String,
     resetPasswordTokenExpire:Date,
     passwordChangeTime:Date,
+    userLoginAttempts:{type:Number,default:0},
+    userLoginExpire:{type:Date, default:new Date(Date.now() - 60000)},
     createdAt:{type:Date,default:Date.now(),immuatable:true,select:false}   
 
 

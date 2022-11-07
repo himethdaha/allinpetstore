@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 const sendMail = require('../utilities/emailer')
 const func = require('../utilities/filterFunction')
+const { json } = require('express')
 
 //Sign JWT function
 const signJWT = (userId,res) =>{
@@ -63,22 +64,66 @@ exports.login_post=async(req,res,next)=>{
     //If user entered the email and password 
     if(!email || !password)
     {
-       return res.status(400).json({
+        res.status(400).json({
         status:'Fail',
         message:'Empty email or password'
        })
     }
     //Get the user based on the email
     const user = await User.findOne({email}).select('+password')
-    console.log(user)
-    //If no user or incorrect password
-    if(user===null || !await bcrypt.compare(password,user.password))
+
+    //If no user 
+    if(user===null)
     {
-        return res.status(400).json({
+        res.status(400).json({
             status:'Fail',
             message:'Incorrect email/password or user does not exist'
         })
     }
+
+    //If incorrect password
+    if(user && !await bcrypt.compare(password,user.password))
+    {
+        //Increment user login attempts
+        user.userLoginAttempts += 1
+        await user.save({validateBeforeSave:false})
+     
+        //Check Login attempts
+        if(user.userLoginAttempts > process.env.USER_LOGIN_COUNTER)
+        {
+            //Add 30 mins to user login expiration time
+            user.userLoginExpire = new Date(Date.now() + 30 * 60 * 1000)
+            //Reset login attempts counter
+            user.userLoginAttempts = 0
+            await user.save({validateBeforeSave:false})
+            return res.status(403).json({
+                status:'Fail',
+                message:'Exceeded Login attempts. Try again in 30 mintues'
+            })
+        }
+
+        return res.status(400).json({
+            status:'Fail',
+            message:'Incorrect email/password or user does not exist'
+        })
+
+    }
+
+    //If the user has exceeded login limit
+    if(user.userLoginExpire > new Date(Date.now()))
+    {
+        return res.status(400).json({
+            status:'Fail',
+            message:`Exceeded Login attempts. Try again in ${((user.userLoginExpire-new Date(Date.now()))/60000).toFixed(0)} minitues`
+        })
+    }
+
+    //If everything is fine
+    if(user.userLoginAttempts < process.env.USER_LOGIN_COUNTER && user.userLoginExpire < new Date(Date.now()))
+    {
+        //Reset login attempts counter
+        user.userLoginAttempts = 0
+        await user.save({validateBeforeSave:false})
         //Create jwt
         const jwtoken = signJWT(user._id,res)
         //Send a response with the jwt
@@ -90,6 +135,8 @@ exports.login_post=async(req,res,next)=>{
                 jwtoken
             }
         })
+    }
+        
     } catch (error) {
         res.send(error)
     }
