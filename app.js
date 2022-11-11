@@ -16,6 +16,7 @@ const storesRouter = require('./routes/stores');
 const petStoresRouter = require('./routes/petShops');
 const petsRouter = require('./routes/pet');
 const itemsRouter = require('./routes/item');
+const reviewRouter = require('./routes/review');
 
 dotenv.config({path: './config.env'})
 const app = express();
@@ -61,6 +62,7 @@ app.use('/stores', storesRouter);
 app.use('/petShops', petStoresRouter);
 app.use('/pets', petsRouter);
 app.use('/items', itemsRouter);
+app.use('/reviews', reviewRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

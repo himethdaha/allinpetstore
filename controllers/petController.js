@@ -8,15 +8,13 @@ const APIFeatures = require('../utilities/APIFeatures')
 exports.get_pets = async(req,res,next)=>{
 
     const queries = new APIFeatures(petModel.find(),req.query).filter().sort().limitFields().pagination()
-
-    const query = await queries.query
     //Get all pets in the db based on filtering,sorting or no filters,sorts
-    let pets = await query.populate('petShop_name')
+    let pets =  await queries.query
     
     if(pets.length == 0)
     {
-        res.status(400).json({
-            status:'Fail',
+        res.status(204).json({
+            status:'Success',
             message:'Could not find any pets'
         })
     }
@@ -38,7 +36,7 @@ exports.get_pet = async(req,res,next)=>{
     {
         res.status(400).json({
             status:'Fail',
-            message:'Pet can not be found'
+            message:'Incorrect pet Id or pet does not exist'
         })
     }
     else
@@ -72,8 +70,7 @@ exports.create_pet = async(req,res,next)=>{
 }
 //PATCH pet
 exports.update_pet = async(req,res,next)=>{
-     //Get the user by req.user
-     const user = await User.findById(req.user._id)
+     const pet = await petModel.findById(req.params.petId)
      //Function to filter fields
      const filteredFields = func.filterFunction(req.body, 'pet_name','type','price','breed','age','color','height','weight','hereditery_sicknesses','image','description')
  
@@ -87,12 +84,12 @@ exports.update_pet = async(req,res,next)=>{
      }
      else
      {
-         const updatedStore = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+         const updatedPet = await petModel.findByIdAndUpdate(pet.id,filteredFields,{new:true,runValidators:true})
  
          res.status(200).json({
              status:'Success',
              message:'Data updateed',
-             updatedStore
+             updatedPet
          })
      }
 }

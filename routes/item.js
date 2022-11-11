@@ -1,6 +1,7 @@
 const express = require('express');
 const itemController = require('../controllers/itemController')
 const authController = require('../controllers/authController')
+const reviewRouter = require('../routes/review')
 const router = express.Router();
 
 //GET petShops based on ratings
@@ -8,7 +9,7 @@ router.get('/itemRatings',itemController.item_ratings)
 //GET most expensive items based on category
 router.get('/expensive/:category',itemController.get_most_expensive)
 //GET item
-router.get('/',itemController.get_item);
+router.get('/',itemController.get_items);
 //GET store based on ID
 router.get('/:itemId',itemController.get_item)
 //POST(create) item
@@ -17,5 +18,8 @@ router.post('/create',authController.authenticateRoutes,authController.authorize
 router.patch('/update/:itemId',authController.authenticateRoutes,authController.authorizeRoutes('owner','breeder'),itemController.update_item);
 //DELETE item
 router.delete('/delete/:itemId',authController.authenticateRoutes,authController.authorizeRoutes('owner','breeder'),itemController.delete_item);
+
+//Route for reviews
+router.use('/:itemId/reviews',reviewRouter)
 
 module.exports = router;

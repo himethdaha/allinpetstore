@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-
+const slugify = require('slugify')
 
 const storeSchema = new mongoose.Schema({
     store_name:{type:String,trim:true,unique:true,required:[true,'Store name is required']},
@@ -13,9 +13,25 @@ const storeSchema = new mongoose.Schema({
     noOfRatings:{type:Number,default:0},
     avgRatings:{type:Number,min:[1,`Rating must be above 1.0`], max:[5,`Rating must be below 5`]},
     slug:{type:String}   
+},{
+    toJSON:{virtuals:true},
+    toObject:{virtuals:true},
+    id:false
 })
 
+//Virtuals
+storeSchema.virtual('review',{
+    path:'Review',
+    foreignField:'store',
+    localField:'_id'
+})
 //DOC Middleware
+storeSchema.pre(/^find/,function(next)
+{
+    this.populate({path:'owner',select:'first_name last_name profile_photo'})
+    next()
+})
+
 storeSchema.pre('save', function(next)
 {
     if(this.isModified('createdAt'))
@@ -26,7 +42,7 @@ storeSchema.pre('save', function(next)
 })
 
 storeSchema.pre('save',function(next){
-    this.slug = slugify(this.item_name, {
+    this.slug = slugify(this.store_name, {
         lower:true
     })
     next()

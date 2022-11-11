@@ -5,6 +5,7 @@ const slugify = require('slugify')
 const itemSchema = new mongoose.Schema({
     item_name:{type:String,trim:true,maxLength:[20,'Maximum characters is 20'],required:[true,'Item name is required']},
     store_name:{type:mongoose.Schema.Types.ObjectId,ref:'Store'},
+    user:{type:mongoose.Schema.Types.ObjectId,ref:'User'},
     description:{type:String,trim:true,maxLength:[150,'Only 150 characters allowed'],required:[true,'Description is required']},
     price:{type:Number,trim:true,required:[true,'Price is required'], get: (val)=>{(val/100).toFixed(2)}, set: (val)=>{val*100}},
     quantity:{type:Number,trim:true,required:[true,'Quantity is required']},
@@ -15,10 +16,26 @@ const itemSchema = new mongoose.Schema({
     slug:{type:String}
 },
 {
-    toJSON:{getters:true}
+    toJSON:{getters:true, virtuals:true},
+    toObject:{virtuals:true},
+    id:false
+    
+})
+
+//Virtuals
+itemSchema.virtual('Review',{
+    path:'Review',
+    foreignField:'item',
+    localField:'_id'
 })
 
 //DOC Middleware
+itemSchema.pre(/^find/,function(next)
+{
+    this.populate({path:'store_name',select:'store_name noOfRatings Rating'})
+    next()
+})
+
 itemSchema.pre('save', function(next)
 {
     if(this.isModified('createdAt'))

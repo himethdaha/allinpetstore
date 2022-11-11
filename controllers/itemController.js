@@ -7,17 +7,17 @@ const APIFeatures = require('../utilities/APIFeatures')
 
 
 //GET all items
-exports.get_item = async(req,res,next)=>{
+exports.get_items = async(req,res,next)=>{
 
     const queries = new APIFeatures(itemModel.find(),req.query).filter().sort().limitFields().pagination()
 
     //Get all items in the db
-    const items = await queries.query.populate('store_name')
+    const items = await queries.query
 
     if(items.length == 0)
     {
-        res.status(400).json({
-            status:'Fail',
+        res.status(204).json({
+            status:'Success',
             message:'Could not find any items'
         })
     }
@@ -32,14 +32,14 @@ exports.get_item = async(req,res,next)=>{
 //GET item based on id
 exports.get_item = async(req,res,next)=>{
     //Get the item id from url params
-    const item = await itemModel.findOne({_id:req.params.itemId}).populate('store_name')
+    const item = await itemModel.findOne({_id:req.params.itemId}).populate('review')
 
     //If there's no item to be found
     if(item===null)
     {
         res.status(400).json({
             status:'Fail',
-            message:'Item can not be found'
+            message:'Incorrect item Id or item does not exist'
         })
     }
     else
@@ -67,8 +67,20 @@ exports.create_item = async(req,res,next)=>{
 }
 //PATCH item
 exports.update_item = async(req,res,next)=>{
-     //Get the user by req.user
-     const user = await User.findById(req.user._id)
+
+    const item = await itemModel.findById(req.params.itemId)
+
+     //Get user from req
+     const user = await User.findById(req.user)
+ 
+     //If the user is the owner of the item
+     if(item.user._id.toString() !== user._id.toString())
+     {
+         return res.status(401).json({
+             status:'Fail',
+             message:'You do not have permission'
+         })
+     }
      //Function to filter fields
      const filteredFields = func.filterFunction(req.body, 'item_name','description','price','quantity')
  
@@ -82,12 +94,12 @@ exports.update_item = async(req,res,next)=>{
      }
      else
      {
-         const updatedStore = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+         const updatedItem = await itemModel.findByIdAndUpdate(item.id,filteredFields,{new:true,runValidators:true})
  
          res.status(200).json({
              status:'Success',
              message:'Data updateed',
-             updatedStore
+             updatedItem
          })
      }
 }
@@ -95,6 +107,16 @@ exports.update_item = async(req,res,next)=>{
 exports.delete_item = async(req,res,next)=>{
  //Get user by id and password
  const user = await User.findOne({_id:req.user._id}).select('+password')
+ const item = await itemModel.findById(req.params.itemId)
+ 
+ //If the user is the owner of the store
+ if(item.user._id.toString() !== user._id.toString())
+ {
+     return res.status(401).json({
+         status:'Fail',
+         message:'You do not have permission'
+     })
+ }
  //Check for password confirmation
  if(!(await bcrypt.compare(req.body.password,user.password)))
  {

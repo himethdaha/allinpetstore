@@ -15,7 +15,7 @@ exports.get_stores = async (req,res,next)=>{
     
     if(stores.length==0)
     {
-        res.status(200).json({
+        res.status(204).json({
             status:'Success',
             message:'No stores to be found'
         })
@@ -34,7 +34,7 @@ exports.get_stores = async (req,res,next)=>{
 //Get a store
 exports.get_store = async(req,res,next)=>{
     //Get a store based on Id
-    const store = await Store.findOne({_id:req.params.storeId})
+    const store = await Store.findOne({_id:req.params.storeId}).populate('review')
 
     if(store===null)
     {
@@ -73,8 +73,20 @@ exports.create_stores = async(req,res,next)=>{
 
 //Modify a store
 exports.update_stores = async(req,res,next)=>{
-    //Get the user by req.user
-    const user = await User.findById(req.user._id)
+    //Get the store by req.user
+    const store = await Store.findById(req.params.storeId)
+
+    //Get user from req
+    const user = await User.findById(req.user)
+ 
+    //If the user is the owner of the store
+    if(store.user._id.toString() !== user._id.toString())
+    {
+        return res.status(401).json({
+            status:'Fail',
+            message:'You do not have permission'
+        })
+    }
     //Function to filter fields
     const filteredFields = func.filterFunction(req.body, 'store_name','description','address','state','postal_code')
 
@@ -88,7 +100,7 @@ exports.update_stores = async(req,res,next)=>{
     }
     else
     {
-        const updatedStore = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+        const updatedStore = await User.findByIdAndUpdate(store.id,filteredFields,{new:true,runValidators:true})
 
         res.status(200).json({
             status:'Success',
@@ -102,6 +114,17 @@ exports.update_stores = async(req,res,next)=>{
 exports.delete_stores = async(req,res,next)=>{
     //Get user by id and password
     const user = await User.findOne({_id:req.user._id}).select('+password')
+    const store = await Store.findById(req.params.storeId)
+
+    //If the user is the owner of the store
+    if(store.user._id.toString() !== user._id.toString())
+    {
+        return res.status(401).json({
+            status:'Fail',
+            message:'You do not have permission'
+        })
+    }
+
     //Check for password confirmation
     if(!(await bcrypt.compare(req.body.password,user.password)))
     {

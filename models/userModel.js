@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema({
     state:{type:String,enum:['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'],trim:true,required:[true,'State is required']},
     postal_code:{type:String,minLength:[6,'Postal code is 6 characters'],maxLength:[6,'Postal code is 6 characters with no special characters'],trim:true,required:[true,'Enter the postal code']},
     role:{type:String,enum:['user','owner','breeder'],required:[true,'role is required'],default:'user'},
+    profile_photo:{type:String},
     resetPasswordToken:String,
     resetPasswordTokenExpire:Date,
     passwordChangeTime:Date,
@@ -57,6 +58,10 @@ const userSchema = new mongoose.Schema({
     createdAt:{type:Date,default:Date.now(),immuatable:true,select:false}   
 
 
+},{
+    toJSON:{virtuals:true},
+    toObject:{virtuals:true},
+    id:false
 })
 
 //DOC Middleware

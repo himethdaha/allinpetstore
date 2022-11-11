@@ -1,6 +1,7 @@
 const express = require('express');
 const storeController = require('../controllers/storecontroller')
 const authController = require('../controllers/authController')
+const reviewRouter = require('../routes/review')
 const router = express.Router();
 
 //GET petShops based on ratings
@@ -15,5 +16,9 @@ router.post('/create',authController.authenticateRoutes,authController.authorize
 router.patch('/update/:storeId',authController.authenticateRoutes,authController.authorizeRoutes('owner'),storeController.update_stores);
 //DELETE stores
 router.delete('/delete/:storeId',authController.authenticateRoutes,authController.authorizeRoutes('owner'),storeController.delete_stores);
+
+//Route for reviews
+router.use('/:storeId/reviews',reviewRouter)
+
 
 module.exports = router;

@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs')
 const func = require('../utilities/filterFunction')
 const APIFeatures = require('../utilities/APIFeatures')
 const { json } = require('express')
+const petShopModel = require('../models/petShopModel')
+const { findById } = require('../models/userModel')
 
 //GET all petshops
 exports.get_petShops = async(req,res,next)=>{
@@ -16,8 +18,8 @@ exports.get_petShops = async(req,res,next)=>{
 
   if(petShops.length == 0)
   {
-    res.status(400).json({
-        status:'Fail',
+    res.status(204).json({
+        status:'Success',
         message:'Could not find any pet stores'
     })
   }
@@ -34,14 +36,14 @@ exports.get_petShops = async(req,res,next)=>{
 //GET pet shop based on id
 exports.get_petShop = async(req,res,next)=>{
     //Get the pet shop id from url params
-    const petShops = await petShop.findOne({_id:req.params.petShopId})
+    const petShops = await petShop.findOne({_id:req.params.petShopId}).populate('review')
 
     //If there's no petshop to be found
     if(petShops===null)
     {
         res.status(400).json({
             status:'Fail',
-            message:'Pet shop can not be found'
+            message:'Incorrect pet shop Id or pet shop does not exist'
         })
     }
     else
@@ -75,8 +77,20 @@ exports.create_petShop = async(req,res,next)=>{
 }
 //PATCH pet shop
 exports.update_petShop = async(req,res,next)=>{
-     //Get the user by req.user
-     const user = await User.findById(req.user._id)
+
+     const petShop = await petShopModel.findById(req.params.petShopId)
+
+     //Get user from req
+     const user = await User.findById(req.user)
+ 
+     //If the user is the owner of the pet shop
+     if(petShop.user._id.toString() !== user._id.toString())
+     {
+         return res.status(401).json({
+             status:'Fail',
+             message:'You do not have permission'
+         })
+     }
      //Function to filter fields
      const filteredFields = func.filterFunction(req.body, 'petShop_name','description','address','state','postal_code')
  
@@ -90,12 +104,12 @@ exports.update_petShop = async(req,res,next)=>{
      }
      else
      {
-         const updatedStore = await User.findByIdAndUpdate(user.id,filteredFields,{new:true,runValidators:true})
+         const updatedPetShop = await User.findByIdAndUpdate(petShop.id,filteredFields,{new:true,runValidators:true})
  
          res.status(200).json({
              status:'Success',
              message:'Data updateed',
-             updatedStore
+             updatedPetShop
          })
      }
 }
@@ -103,6 +117,16 @@ exports.update_petShop = async(req,res,next)=>{
 exports.delete_petShop = async(req,res,next)=>{
      //Get user by id and password
      const user = await User.findOne({_id:req.user._id}).select('+password')
+     const petShop = await petShopModel.findById(req.params.petShopId) 
+ 
+     //If the user is the owner of the pet shop
+     if(petShop.user._id.toString() !== user._id.toString())
+     {
+         return res.status(401).json({
+             status:'Fail',
+             message:'You do not have permission'
+         })
+     }
      //Check for password confirmation
      if(!(await bcrypt.compare(req.body.password,user.password)))
      {
