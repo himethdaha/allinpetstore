@@ -58,6 +58,7 @@ exports.get_petShop = async(req,res,next)=>{
 }
 //POST (create) pet shop
 exports.create_petShop = async(req,res,next)=>{
+    try {
     //Get the fields from the request body
     const newpetShop = await petShop.create({
         petShop_name:req.body.petShop_name,
@@ -73,45 +74,67 @@ exports.create_petShop = async(req,res,next)=>{
         message:'Pet shop created',
         newpetShop
     })
+    } catch (error) {
+        //For duplicate store names
+        if(error.code === 11000)
+        {
+            return res.status(400).json({
+                status:'Fail',
+                message:'Can not have pet shop names conflicting with other pet shop names'
+            })
+        }        
+    }
+   
 
 }
 //PATCH pet shop
 exports.update_petShop = async(req,res,next)=>{
+    try {
+        const petShop = await petShopModel.findById(req.params.petShopId)
 
-     const petShop = await petShopModel.findById(req.params.petShopId)
+        //Get user from req
+        const user = await User.findById(req.user)
+    
+        //If the user is the owner of the pet shop
+        if(petShop.user._id.toString() !== user._id.toString())
+        {
+           return res.status(401).json({
+               status:'Fail',
+               message:'You do not have permission'
+           })
+        }
+        //Function to filter fields
+        const filteredFields = func.filterFunction(req.body, 'petShop_name','description','address','state','postal_code')
+    
+        //If the request body contains owner field
+        if(req.body.owner)
+        {
+           res.status(400).json({
+               status:'Fail',
+               message:'You can not update owner here. Please contact our customer services'
+           })
+        }
+        else
+        {
+            const updatedPetShop = await petShopModel.findByIdAndUpdate(petShop._id,filteredFields,{new:true,runValidators:true})
+    
+            res.status(200).json({
+                status:'Success',
+                message:'Data updateed',
+                updatedPetShop
+            })
+        }
+    } catch (error) {
+        //For duplicate store names
+        if(error.code === 11000)
+        {
+            return res.status(400).json({
+                status:'Fail',
+                message:'Can not have pet shop names conflicting with other pet shop names'
+            })
+        }  
+    }
 
-     //Get user from req
-     const user = await User.findById(req.user)
- 
-     //If the user is the owner of the pet shop
-     if(petShop.user._id.toString() !== user._id.toString())
-     {
-         return res.status(401).json({
-             status:'Fail',
-             message:'You do not have permission'
-         })
-     }
-     //Function to filter fields
-     const filteredFields = func.filterFunction(req.body, 'petShop_name','description','address','state','postal_code')
- 
-     //If the request body contains owner field
-     if(req.body.owner)
-     {
-         res.status(400).json({
-             status:'Fail',
-             message:'You can not update owner here. Please contact our customer services'
-         })
-     }
-     else
-     {
-         const updatedPetShop = await User.findByIdAndUpdate(petShop.id,filteredFields,{new:true,runValidators:true})
- 
-         res.status(200).json({
-             status:'Success',
-             message:'Data updateed',
-             updatedPetShop
-         })
-     }
 }
 //DELETE pet shop
 exports.delete_petShop = async(req,res,next)=>{

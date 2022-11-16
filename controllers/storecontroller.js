@@ -56,31 +56,41 @@ exports.get_store = async(req,res,next)=>{
 
 //Create a store
 exports.create_stores = async(req,res,next)=>{
-    const store = await Store.create({
-        store_name:req.body.store_name,
-        owner:req.body.owner,
-        address:req.body.address,
-        state:req.body.state,
-        postal_code:req.body.postal_code
-    })
+    try {
+        const store = await Store.create({
+            store_name:req.body.store_name,
+            owner:req.body.owner,
+            address:req.body.address,
+            state:req.body.state,
+            postal_code:req.body.postal_code
+        })
 
-    res.status(201).json({
-        status:'Success',
-        message:'Store created',
-        store
-    })
+        res.status(201).json({
+            status:'Success',
+            message:'Store created',
+        })
+    } catch (error) {
+        console.log(error)
+        //For duplicate store names
+        if(error.code === 11000)
+        {
+            return res.status(400).json({
+                status:'Fail',
+                message:'Can not have store names conflicting with other store names'
+            })
+        }
+    }
 }
 
 //Modify a store
 exports.update_stores = async(req,res,next)=>{
+    try {
     //Get the store by req.user
     const store = await Store.findById(req.params.storeId)
-
     //Get user from req
     const user = await User.findById(req.user)
- 
     //If the user is the owner of the store
-    if(store.user._id.toString() !== user._id.toString())
+    if(store.owner._id.toString() !== user._id.toString())
     {
         return res.status(401).json({
             status:'Fail',
@@ -91,7 +101,7 @@ exports.update_stores = async(req,res,next)=>{
     const filteredFields = func.filterFunction(req.body, 'store_name','description','address','state','postal_code')
 
     //If the request body contains owner field
-    if(req.body.owner)
+    if(req.body.user)
     {
         res.status(400).json({
             status:'Fail',
@@ -100,14 +110,24 @@ exports.update_stores = async(req,res,next)=>{
     }
     else
     {
-        const updatedStore = await User.findByIdAndUpdate(store.id,filteredFields,{new:true,runValidators:true})
-
+        const updatedStore = await Store.findByIdAndUpdate(store._id,filteredFields,{new:true,runValidators:true})
         res.status(200).json({
             status:'Success',
             message:'Data updateed',
             updatedStore
         })
     }
+    } catch (error) {
+        //For duplicate store names
+        if(error.code === 11000)
+        {
+           return res.status(400).json({
+               status:'Fail',
+               message:'Can not have store names conflicting with other store names'
+           })
+        }
+    }
+
 }
 
 //Delete a store
