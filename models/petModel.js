@@ -16,6 +16,7 @@ const petSchema = new mongoose.Schema({
     image:{type:String},
     description:{type:String,minLength:[20,'Need a description of at least 20 characters'],maxLength:[200,`Description can't exceed 200 characters`], trim:true,required:true},
     petShop_name:{type:mongoose.Schema.Types.ObjectId,ref:'PetShop'},
+    owner:{type:mongoose.Schema.Types.ObjectId, ref: 'User'},
     createdAt:{type:Date,default:Date.now(),immuatable:true,select:false},
     slug:{type:String}
 },

@@ -85,15 +85,27 @@ exports.update_pet = async(req,res,next)=>{
 
     try {
         const pet = await petModel.findById(req.params.petId)
+        //Get user from req
+        const user = await User.findById(req.user)
+
+        //If the user is the owner of the pet shop
+        if(pet.owner._id.toString() !== user._id.toString())
+        {
+           return res.status(401).json({
+               status:'Fail',
+               message:'You do not have permission'
+           })
+        }
+
         //Function to filter fields
         const filteredFields = func.filterFunction(req.body, 'pet_name','type','price','breed','age','color','height','weight','hereditery_sicknesses','image','description')
      
         //If the request body contains breeder name field
-        if(req.body.breeder_name)
+        if(req.body.petShop_name || req.body.owner)
         {
             res.status(400).json({
                 status:'Fail',
-                message:'You can not update breeder here. Please contact our customer services'
+                message:'You can not update pet shop or owner here. Please contact our customer services'
             })
         }
         else
@@ -122,6 +134,17 @@ exports.update_pet = async(req,res,next)=>{
 exports.delete_pet = async(req,res,next)=>{
     //Get user by id and password
     const user = await User.findOne({_id:req.user._id}).select('+password')
+    const pet = await petModel.findById(req.params.petId) 
+
+    //If the user is the owner of the pet shop
+    if(pet.owner._id.toString() !== user._id.toString())
+    {
+        return res.status(401).json({
+            status:'Fail',
+            message:'You do not have permission'
+        })
+    }
+
     //Check for password confirmation
     if(!(await bcrypt.compare(req.body.password,user.password)))
     {

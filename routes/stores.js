@@ -17,6 +17,9 @@ router.patch('/update/:storeId',authController.authenticateRoutes,authController
 //DELETE stores
 router.delete('/delete/:storeId',authController.authenticateRoutes,authController.authorizeRoutes('owner'),storeController.delete_stores);
 
+//Route to get pet shops within a certain distance
+router.get('/distance/:distance/unit/:unit/current-lat/:lat/current-lng/:lng',storeController.get_stores_distance);
+
 //Route for reviews
 router.use('/:storeId/reviews',reviewRouter)
 

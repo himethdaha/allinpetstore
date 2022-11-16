@@ -86,7 +86,7 @@ exports.update_item = async(req,res,next)=>{
         const user = await User.findById(req.user)
     
         //If the user is the owner of the item
-        if(item.user._id.toString() !== user._id.toString())
+        if(item.owner._id.toString() !== user._id.toString())
         {
             return res.status(401).json({
                 status:'Fail',
@@ -134,7 +134,7 @@ exports.delete_item = async(req,res,next)=>{
  const item = await itemModel.findById(req.params.itemId)
  
  //If the user is the owner of the store
- if(item.user._id.toString() !== user._id.toString())
+ if(item.owner._id.toString() !== user._id.toString())
  {
      return res.status(401).json({
          status:'Fail',

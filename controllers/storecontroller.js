@@ -70,7 +70,6 @@ exports.create_stores = async(req,res,next)=>{
             message:'Store created',
         })
     } catch (error) {
-        console.log(error)
         //For duplicate store names
         if(error.code === 11000)
         {
@@ -80,13 +79,14 @@ exports.create_stores = async(req,res,next)=>{
             })
         }
         //For validation errors
-        if(error.errors.title.name === 'ValidatorError')
+        if(error.name === 'ValidationError')
         {
             res.status(400).json({
                 status:'Fail',
-                message:`${error.errors.title.message}`
+                message:error.message
             })
         }
+        console.log(error)
     }
 }
 
@@ -153,7 +153,7 @@ exports.delete_stores = async(req,res,next)=>{
     const store = await Store.findById(req.params.storeId)
 
     //If the user is the owner of the store
-    if(store.user._id.toString() !== user._id.toString())
+    if(store.owner._id.toString() !== user._id.toString())
     {
         return res.status(401).json({
             status:'Fail',
@@ -176,6 +176,50 @@ exports.delete_stores = async(req,res,next)=>{
         res.status(204).json({
             status:'Success',
             message:'Store Deleted'
+        })
+    }
+}
+
+//To get pet shops within a certain distance
+exports.get_stores_distance = async(req,res,next) =>{
+    try {
+         //Get user lat and lng from browser
+        if(navigator.geolocation)
+        {
+            navigator.geolocation.getCurrentPosition(function(position){
+
+                let lat = position.coords.latitude
+                let lng = position.coords.longitude
+            })
+        }
+
+        lat = req.params.lat
+        lng = req.params.lng
+
+        //If lat or lng isn't provided
+        if(!lat || !lng)
+        {
+            return res.status(400).json({
+                status:'Fail',
+                message: 'Please allow location access in your browser or provide longitudinal and latitudinal values of your current location'
+            })
+        }
+
+        const {distance,unit} = req.params
+
+        const radius = unit === 'mi' ? distance/3963 : distance/6378
+
+        //Find stores within a certain distance
+        const stores = await storeModel.find({storeLocation:{$geoWithin:{$centerSphere:[[lng,lat], radius]}}})
+
+        res.status(200).json({
+            status:'Success',
+            stores
+        })
+    } catch (error) {
+        res.status(404).json({
+            status:'Fail',
+            message:'An error occured'
         })
     }
 }

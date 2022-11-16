@@ -13,11 +13,22 @@ const petShopSchema = new mongoose.Schema({
     noOfRatings:{type:Number,default:0},
     Rating:{type:Number,min:[1,`Rating must be above 1.0`], max:[5,`Rating must be below 5`],set:val=> Math.round(val*10)/10},
     slug:{type:String},  
+    shopLocation:{
+        type:{
+            type:String,
+            default:'Point',
+            enum:['Point']
+        },
+        coordinates:[Number]
+    }
 },{
     toJSON:{virtuals:true},
     toObject:{virtuals:true},
     id:false
 })
+
+//Geospatial Index
+petShopSchema.index({shopLocation:'2dsphere'})
 
 //Virtuals
 petShopSchema.virtual('review',{
@@ -46,5 +57,6 @@ petShopSchema.pre('save',function(next){
     this.slug = slugify(this.petShop_name, {
         lower:true
     })
+    next()
 })
 module.exports = mongoose.model('PetShop',petShopSchema);

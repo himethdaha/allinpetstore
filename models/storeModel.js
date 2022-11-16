@@ -12,13 +12,16 @@ const storeSchema = new mongoose.Schema({
     createdAt:{type:Date,default:Date.now(),immuatable:true,select:false},
     noOfRatings:{type:Number,default:0},
     avgRatings:{type:Number,min:[1,`Rating must be above 1.0`], max:[5,`Rating must be below 5`]},
-    slug:{type:String}   
+    slug:{type:String},
+    storeLocation:{type:{type:String,default:'Point',enum:['Point']},coordinates:[Number]}   
 },{
     toJSON:{virtuals:true},
     toObject:{virtuals:true},
     id:false
 })
 
+//Geo index
+storeSchema.index({storeLocation:'2dsphere'})
 //Virtuals
 storeSchema.virtual('review',{
     path:'Review',

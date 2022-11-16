@@ -63,13 +63,14 @@ exports.create_petShop = async(req,res,next)=>{
     const newpetShop = await petShop.create({
         petShop_name:req.body.petShop_name,
         description:req.body.description,
-        owner:req.body.owner,
+        owner:req.user._id,
         address:req.body.address,
         state:req.body.state,
-        postal_code:req.body.postal_code
+        postal_code:req.body.postal_code,
+        shopLocation:req.body.shopLocation
     })
 
-    res.status(201).json({
+    return res.status(201).json({
         status:'Success',
         message:'Pet shop created',
         newpetShop
@@ -78,19 +79,20 @@ exports.create_petShop = async(req,res,next)=>{
         //For duplicate store names
         if(error.code === 11000)
         {
-            res.status(400).json({
+            return res.status(400).json({
                 status:'Fail',
                 message:'Can not have pet shop names conflicting with other pet shop names'
             })
         }  
-        //For validation errors
-        if(error.errors.title.name === 'ValidatorError')
+        // For validation errors
+        if(error.name === 'ValidatorError')
         {
-            res.status(400).json({
+            return res.status(400).json({
                 status:'Fail',
-                message:`${error.errors.title.message}`
+                message:`${error.message}`
             })
-        }      
+        }  
+        console.log(error)   
     }
    
 
@@ -104,7 +106,7 @@ exports.update_petShop = async(req,res,next)=>{
         const user = await User.findById(req.user)
     
         //If the user is the owner of the pet shop
-        if(petShop.user._id.toString() !== user._id.toString())
+        if(petShop.owner._id.toString() !== user._id.toString())
         {
            return res.status(401).json({
                status:'Fail',
@@ -112,7 +114,7 @@ exports.update_petShop = async(req,res,next)=>{
            })
         }
         //Function to filter fields
-        const filteredFields = func.filterFunction(req.body, 'petShop_name','description','address','state','postal_code')
+        const filteredFields = func.filterFunction(req.body, 'petShop_name','description','address','state','postal_code','shopLocation')
     
         //If the request body contains owner field
         if(req.body.owner)
@@ -142,11 +144,11 @@ exports.update_petShop = async(req,res,next)=>{
             })
         }
         //For validation errors
-        if(error.errors.title.name === 'ValidatorError')
+        if(error.name === 'ValidatorError')
         {
             res.status(400).json({
                 status:'Fail',
-                message:`${error.errors.title.message}`
+                message:error.message
             })
         }  
     }
@@ -159,7 +161,7 @@ exports.delete_petShop = async(req,res,next)=>{
      const petShop = await petShopModel.findById(req.params.petShopId) 
  
      //If the user is the owner of the pet shop
-     if(petShop.user._id.toString() !== user._id.toString())
+     if(petShop.owner._id.toString() !== user._id.toString())
      {
          return res.status(401).json({
              status:'Fail',
@@ -183,6 +185,54 @@ exports.delete_petShop = async(req,res,next)=>{
             message:'Pet Shop Deleted'
         })
      }
+}
+
+//To get pet shops within a certain distance
+exports.get_petShops_distance = async(req,res,next) =>{
+
+    try {
+        //Get location from browser if user allows it
+        if(navigator.geolocation)
+        {
+            navigator.geolocation.getCurrentPosition(function(position){
+
+                let lat =  position.coords.latitude
+                let lng =  position.coords.longitude
+            })
+        }
+        lat = req.params.lat
+        lng = req.params.lng
+
+        //If users location isn't given
+        if(!lat || !lng)
+        {
+            return res.status(400).json({
+                status:'Fail',
+                message:'Please allow location access in your browser or provide longitudinal and latitudinal values of your current location'
+            })
+        }
+              
+        //Get values required from req.params
+        const {distance,unit} = req.params
+
+        //Radian
+        const radius = unit === 'mi' ? distance/3963 : distance/6378
+
+        //Find the petshops based on the params
+        const petShops = await petShopModel.find({shopLocation:{$geoWithin:{$centerSphere:[[lng,lat],radius]}}})
+
+        res.status(200).json({
+            status:'Success',
+            petShops
+        })
+
+    } catch (error) {
+        res.status(404).json({
+            status:'Fail',
+            message:'An error occured'
+        })
+    }
+   
 }
 
 
