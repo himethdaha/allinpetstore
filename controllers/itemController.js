@@ -52,56 +52,80 @@ exports.get_item = async(req,res,next)=>{
 }
 //POST (create) item
 exports.create_item = async(req,res,next)=>{
-    const item = await itemModel.create({
-        item_name:req.body.item_name,
-        store_name:req.body.store_name,
-        description:req.body.description,
-        price:req.body.price,
-        quantity:req.body.quantity,
-    })
-    res.status(201).json({
-        status:'Success',
-        message:'Item created',
-        item
-    })
+    try {
+        const item = await itemModel.create({
+            item_name:req.body.item_name,
+            store_name:req.body.store_name,
+            description:req.body.description,
+            price:req.body.price,
+            quantity:req.body.quantity,
+        })
+        res.status(201).json({
+            status:'Success',
+            message:'Item created',
+            item
+        })
+    } catch (error) {
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
+            })
+        }
+    }
 }
 //PATCH item
 exports.update_item = async(req,res,next)=>{
+    
+    try {
+        const item = await itemModel.findById(req.params.itemId)
 
-    const item = await itemModel.findById(req.params.itemId)
+        //Get user from req
+        const user = await User.findById(req.user)
+    
+        //If the user is the owner of the item
+        if(item.user._id.toString() !== user._id.toString())
+        {
+            return res.status(401).json({
+                status:'Fail',
+                message:'You do not have permission'
+            })
+        }
+        //Function to filter fields
+        const filteredFields = func.filterFunction(req.body, 'item_name','description','price','quantity')
+    
+        //If the request body contains store name field
+        if(req.body.store_name)
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:'You can not update the store name here. Please contact our customer services'
+            })
+        }
+        else
+        {
+            const updatedItem = await itemModel.findByIdAndUpdate(item._id,filteredFields,{new:true,runValidators:true})
+    
+            res.status(200).json({
+                status:'Success',
+                message:'Data updateed',
+                updatedItem
+            })
+        }
+    } catch (error) {
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
+            })
+        }
+    }
 
-     //Get user from req
-     const user = await User.findById(req.user)
- 
-     //If the user is the owner of the item
-     if(item.user._id.toString() !== user._id.toString())
-     {
-         return res.status(401).json({
-             status:'Fail',
-             message:'You do not have permission'
-         })
-     }
-     //Function to filter fields
-     const filteredFields = func.filterFunction(req.body, 'item_name','description','price','quantity')
- 
-     //If the request body contains store name field
-     if(req.body.store_name)
-     {
-         res.status(400).json({
-             status:'Fail',
-             message:'You can not update the store name here. Please contact our customer services'
-         })
-     }
-     else
-     {
-         const updatedItem = await itemModel.findByIdAndUpdate(item._id,filteredFields,{new:true,runValidators:true})
- 
-         res.status(200).json({
-             status:'Success',
-             message:'Data updateed',
-             updatedItem
-         })
-     }
+   
 }
 //DELETE item
 exports.delete_item = async(req,res,next)=>{

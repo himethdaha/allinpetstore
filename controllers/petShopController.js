@@ -78,11 +78,19 @@ exports.create_petShop = async(req,res,next)=>{
         //For duplicate store names
         if(error.code === 11000)
         {
-            return res.status(400).json({
+            res.status(400).json({
                 status:'Fail',
                 message:'Can not have pet shop names conflicting with other pet shop names'
             })
-        }        
+        }  
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
+            })
+        }      
     }
    
 
@@ -128,9 +136,17 @@ exports.update_petShop = async(req,res,next)=>{
         //For duplicate store names
         if(error.code === 11000)
         {
-            return res.status(400).json({
+            res.status(400).json({
                 status:'Fail',
                 message:'Can not have pet shop names conflicting with other pet shop names'
+            })
+        }
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
             })
         }  
     }

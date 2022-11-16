@@ -74,9 +74,17 @@ exports.create_stores = async(req,res,next)=>{
         //For duplicate store names
         if(error.code === 11000)
         {
-            return res.status(400).json({
+            res.status(400).json({
                 status:'Fail',
                 message:'Can not have store names conflicting with other store names'
+            })
+        }
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
             })
         }
     }
@@ -121,10 +129,18 @@ exports.update_stores = async(req,res,next)=>{
         //For duplicate store names
         if(error.code === 11000)
         {
-           return res.status(400).json({
+            res.status(400).json({
                status:'Fail',
                message:'Can not have store names conflicting with other store names'
            })
+        }
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
+            })
         }
     }
 

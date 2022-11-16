@@ -90,13 +90,23 @@ exports.create_Review = async(req,res) =>{
             review
         })
     } catch (error) {
+        //If duplicate reviews from the same user exists
         if(error.code === 11000)
         {
-            res.status(400).json({
+            return res.status(400).json({
                 status:'Fail',
                 messsage:'Can not create another review for the same store or item'
             })
         }
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
+            })
+        }
+       
     }
     
 }
@@ -151,40 +161,39 @@ exports.delete_Review = async(req,res) =>{
 
 //UPDATE a review
 exports.update_Review = async(req,res) =>{
-    //Get review Id from url params
-    const review = await Review.findById(req.params.reviewId)
 
-    if(review === null)
-    {
-        return res.status(400).json({
-            status:'Success',
-            message:'Incorrect review Id or review does not exist'
+    try {
+        //Get review Id from url params
+        const review = await Review.findById(req.params.reviewId)
 
-        })
-    }
+        if(review === null)
+        {
+            return res.status(400).json({
+                status:'Success',
+                message:'Incorrect review Id or review does not exist'
 
-     //Get user from req
-     const user = await User.findById(req.user)
- 
-     //If the user is the owner of the review
-     if(review.user._id.toString() !== user._id.toString())
-     {
-         return res.status(401).json({
-             status:'Fail',
-             message:'You do not have permission'
-         })
-     }
+            })
+        }
 
+        //Get user from req
+        const user = await User.findById(req.user)
+    
+        //If the user is the owner of the review
+        if(review.user._id.toString() !== user._id.toString())
+        {
+            return res.status(401).json({
+                status:'Fail',
+                message:'You do not have permission'
+            })
+        }
 
-
-    if(req.body.user)
-    {
-        return res.status(400).json({
-            status:'Fail',
-            message:'You can not update user'
-        })
-    }
-
+        if(req.body.user)
+        {
+            return res.status(400).json({
+                status:'Fail',
+                message:'You can not update user'
+            })
+        }
 
     //Function to filter fields
     const filteredFields = func.filterFunction(req.body, 'title','description')
@@ -196,5 +205,15 @@ exports.update_Review = async(req,res) =>{
              message:'Data updateed',
              updatedReview
         })
+    } catch (error) {
+        //For validation errors
+        if(error.errors.title.name === 'ValidatorError')
+        {
+            res.status(400).json({
+                status:'Fail',
+                message:`${error.errors.title.message}`
+            })
+        }
+    }
 
 }
