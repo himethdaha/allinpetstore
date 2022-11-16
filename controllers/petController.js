@@ -84,7 +84,7 @@ exports.update_pet = async(req,res,next)=>{
      }
      else
      {
-         const updatedPet = await petModel.findByIdAndUpdate(pet.id,filteredFields,{new:true,runValidators:true})
+         const updatedPet = await petModel.findByIdAndUpdate(pet._id,filteredFields,{new:true,runValidators:true})
  
          res.status(200).json({
              status:'Success',

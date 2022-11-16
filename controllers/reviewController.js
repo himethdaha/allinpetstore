@@ -53,21 +53,52 @@ exports.getReview = async(req,res)=>{
 
 //POST new review
 exports.create_Review = async(req,res) =>{
-
-    const review = await Review.create({
-        title : req.body.title,
-        description : req.body.description,
-        user : req.user.id,
-        petShop : req.params.petShop,
-        store : req.params.store,
-        item:req.params.item
-    })
-
-    res.status(201).json({
-        status:'Success',
-        message:'Review created',
-        review
-    })
+    try {
+        let review;
+        if(req.params.storeId)
+        {
+            review = await Review.create({
+                title : req.body.title,
+                description : req.body.description,
+                user : req.user._id,
+                store : req.params.storeId
+            })
+        }
+        else if(req.params.petShopId)
+        {
+            review = await Review.create({
+                title : req.body.title,
+                description : req.body.description,
+                user : req.user._id,
+                petShop : req.params.petShopId
+            })
+        }
+        else if(req.params.itemId)
+        {
+            review = await Review.create({
+                title : req.body.title,
+                description : req.body.description,
+                user : req.user._id,
+                item:req.params.itemId
+            })
+        }
+        
+    
+        res.status(201).json({
+            status:'Success',
+            message:'Review created',
+            review
+        })
+    } catch (error) {
+        if(error.code === 11000)
+        {
+            res.status(400).json({
+                status:'Fail',
+                messsage:'Can not create another review for the same store or item'
+            })
+        }
+    }
+    
 }
 
 //DELETE review
@@ -158,7 +189,7 @@ exports.update_Review = async(req,res) =>{
     //Function to filter fields
     const filteredFields = func.filterFunction(req.body, 'title','description')
 
-    const updatedReview = await Review.findByIdAndUpdate(review.id,filteredFields,{new:true,runValidators:true})
+    const updatedReview = await Review.findByIdAndUpdate(review._id,filteredFields,{new:true,runValidators:true})
  
         return res.status(200).json({
              status:'Success',

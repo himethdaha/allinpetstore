@@ -94,7 +94,7 @@ exports.update_item = async(req,res,next)=>{
      }
      else
      {
-         const updatedItem = await itemModel.findByIdAndUpdate(item.id,filteredFields,{new:true,runValidators:true})
+         const updatedItem = await itemModel.findByIdAndUpdate(item._id,filteredFields,{new:true,runValidators:true})
  
          res.status(200).json({
              status:'Success',
