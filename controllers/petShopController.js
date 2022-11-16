@@ -235,7 +235,78 @@ exports.get_petShops_distance = async(req,res,next) =>{
    
 }
 
+//To calculate the distances to all petshops from the users location
+exports.getAll_distances = async(req,res,next) =>{
+    try {
+        //Get location from browser if user allows it
+        // if(navigator.geolocation)
+        // {
+        //     navigator.geolocation.getCurrentPosition(function(position){
 
+        //         let lat =  position.coords.latitude
+        //         let lng =  position.coords.longitude
+        //     })
+        // }
+        let lat = req.params.lat
+        let lng = req.params.lng
+
+        //If users location isn't given
+        if(!lat || !lng)
+        {
+            return res.status(400).json({
+                status:'Fail',
+                message:'Please allow location access in your browser or provide longitudinal and latitudinal values of your current location'
+            })
+        }
+
+        //Get unit from params
+        const {unit} = req.params
+        const distMultiplier = unit === 'mi' ? 0.00062137 : 0.001
+
+        const petShops = await petShopModel.aggregate([
+                {
+                    $geoNear:{
+                        near:{
+                            type:'Point',
+                            coordinates:[Number(lng), Number(lat)]
+                        },
+                        distanceField:'distance' ,
+                        distanceMultiplier:distMultiplier,
+                        spherical:true
+                    }
+                },
+                {
+                    $addFields:{
+                        petshop_name:'$_id'
+                    }
+                },
+                {
+                    $project:{
+                        petShop_name:1,
+                        distance:1,
+                        _id:0
+                    }
+                },
+                {
+                    $sort:{
+                        distance:1
+                    }
+                }
+        ])
+        
+        res.status(200).json({
+            status:'Success',
+            petShops
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            status:'Fail',
+            message:'An error occured',
+            error
+        })
+    }
+}
 exports.petShop_ratings = async(req,res,next)=>{
 
     try {

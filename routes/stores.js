@@ -17,6 +17,8 @@ router.patch('/update/:storeId',authController.authenticateRoutes,authController
 //DELETE stores
 router.delete('/delete/:storeId',authController.authenticateRoutes,authController.authorizeRoutes('owner'),storeController.delete_stores);
 
+//Route to get all pet shops distances from users location
+router.get('/get-distance/current-lat/:lat/current-lng/:lng/unit/:unit',storeController.getAll_distances);
 //Route to get pet shops within a certain distance
 router.get('/distance/:distance/unit/:unit/current-lat/:lat/current-lng/:lng',storeController.get_stores_distance);
 

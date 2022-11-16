@@ -4,6 +4,8 @@ const authController = require('../controllers/authController')
 const reviewRouter = require('../routes/review');
 const router = express.Router();
 
+//Route to get all pet shops distances from users location
+router.get('/get-distance/current-lat/:lat/current-lng/:lng/unit/:unit',petShopController.getAll_distances)
 //GET petShops based on ratings
 router.get('/petShopRatings',petShopController.petShop_ratings)
 //GET petShop
@@ -17,8 +19,9 @@ router.patch('/update/:petShopId',authController.authenticateRoutes,authControll
 //DELETE petShop
 router.delete('/delete/:petShopId',authController.authenticateRoutes,authController.authorizeRoutes('breeder'),petShopController.delete_petShop);
 
+;
 //Route to get pet shops within a certain distance
-router.get('/distance/:distance/unit/:unit/current-lat/:lat/current-lng/:lng',petShopController.get_petShops_distance);
+// router.get('/distance/:distance/unit/:unit/current-lat/:lat/current-lng/:lng',petShopController.get_petShops_distance);
 
 //Route for reviews
 router.use('/:petShopId/reviews',reviewRouter)

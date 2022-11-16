@@ -224,6 +224,10 @@ exports.get_stores_distance = async(req,res,next) =>{
     }
 }
 
+exports.getAll_distances = (req,res,next) =>{
+    
+}
+
 exports.store_ratings = async(req,res,next)=>{
 
     try {
